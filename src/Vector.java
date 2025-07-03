@@ -40,7 +40,6 @@ public class Vector {
 
     public static float dot(Vector v1, Vector v2){
         return v1.X * v2.X + v1.Y * v2.Y + v1.Z * v2.Z;
-
     }
 
 }
