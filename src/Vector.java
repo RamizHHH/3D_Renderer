@@ -42,6 +42,19 @@ public class Vector {
         return v1.X * v2.X + v1.Y * v2.Y + v1.Z * v2.Z;
     }
 
-    //Test Comment
+    public static float length2(Vector v){
+        return dot(v, v);
+    }
 
+    public static float length(Vector v){
+        return (float) Math.sqrt(length2(v));
+    }
+
+    public static float distance2(Vector v1, Vector v2){
+        return length2(subtract(v1, v2));
+    }
+
+    public static float distance(Vector v1, Vector v2){
+        return (float)Math.sqrt(distance2(v1,v2));
+    }
 }
