@@ -34,7 +34,9 @@ public class Color {
         int g2 = (int)(color2.Y * 255);
         int b2 = (int)(color2.Z * 255);
 
-        return Integer.compare(r1, r2) + Integer.compare(g1, g2) + Integer.compare(b1, b2);
+        if (r1 != r2) return Integer.compare(r1, r2);
+        if (g1 != g2) return Integer.compare(g1, g2);
+        return Integer.compare(b1, b2);
     }
 
 

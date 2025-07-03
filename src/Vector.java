@@ -10,6 +10,12 @@ public class Vector {
         this.Z = z;
     }
 
+    public Vector() {
+        this.X = 0;
+        this.Y = 0;
+        this.Z = 0;
+    }
+
     public static Vector add(Vector v1, Vector v2){
         double x = v1.X + v2.X;
         double y = v1.Y + v2.Y;
