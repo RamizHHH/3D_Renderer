@@ -44,6 +44,14 @@ public class Vector {
         return new Vector(v.X / d, v.Y / d, v.Z / d);
     }
 
+    public static Vector normalize(Vector v){
+        float len = length(v);
+        if (len == 0) {
+            throw new ArithmeticException("Cannot normalize a zero-length vector.");
+        }
+        return scalarDivide(v, len);
+    }
+
     public static float dot(Vector v1, Vector v2){
         return v1.X * v2.X + v1.Y * v2.Y + v1.Z * v2.Z;
     }
