@@ -5,14 +5,14 @@ import java.io.IOException;
 public class Color {
 
     public static void WriteColor(BufferedWriter ppmFile, Vector color){
-        int r = (int)(color.X * 255);
-        int g = (int)(color.Y * 255);
-        int b = (int)(color.Z * 255);
-
         try {
-            ppmFile.write(r + " " + g + " " + b + "\n");
+            int r = (int)(Math.min(Math.max(color.X * 255.0f, 0.0f), 255.0f));
+            int g = (int)(Math.min(Math.max(color.Y * 255.0f, 0.0f), 255.0f));
+            int b = (int)(Math.min(Math.max(color.Z * 255.0f, 0.0f), 255.0f));
+
+            ppmFile.write(r + " " + g + " " + b + " ");
         } catch (IOException e) {
-            System.out.println("Error writing color to file: " + e.getMessage());
+            System.out.println("Error writing color: " + e.getMessage());
         }
 
     }

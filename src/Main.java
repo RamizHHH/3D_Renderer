@@ -6,21 +6,20 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
 
-        int width = 0;
-        int height = 0;
-        float viewHeight = 0;
-        float focal = 0;
+        int width;
+        int height;
+        float viewHeight;
+        float focal;
         Vector lightPos = new Vector(0.0f, 0.0f, 0.0f);
-        float bright = 0;
-        int numColors = 0;
+        float bright;
+        int numColors;
         ArrayList <String> hexColors = new ArrayList<>();
-        int background = 0;
-        int numSpheres = 0;
-
+        int background;
+        int numSpheres;
         World world = new World();
 
         try{
-            Scanner scanner = new Scanner(new File("input.txt"));
+            Scanner scanner = new Scanner(new File("src/input.txt"));
             width = scanner.nextInt();
             height = scanner.nextInt();
             viewHeight = scanner.nextFloat();
@@ -54,58 +53,66 @@ public class Main {
 
         float AP = (float) width / (float) height;
         float viewWidth = AP * viewHeight;
-        //hexColors.sort(Color::compareColor);
+        hexColors.sort((a, b) -> {
+            String cleanA = a.startsWith("0x") ? a.substring(2) : a;
+            String cleanB = b.startsWith("0x") ? b.substring(2) : b;
+
+            Vector colorA = Color.unpackColor(Integer.parseInt(cleanA, 16));
+            Vector colorB = Color.unpackColor(Integer.parseInt(cleanB, 16));
+            return Color.compareColor(colorA, colorB);
+        });
+
 
         double scale1 = viewWidth / width;
         double scale2 = viewHeight / height;
 
-        try{
-            BufferedWriter ppmFile = new BufferedWriter(new FileWriter("output.ppm"));
+        try (BufferedWriter ppmFile = new BufferedWriter(new FileWriter("output.ppm"))) {
             ppmFile.write("P3\n");
             ppmFile.write(width + " " + height + "\n");
             ppmFile.write("255\n");
-            for(int y = height - 1; y >= 0; --y){
-                for(int x = 0; x < width; ++x){
-                    float c1 = (float)((x * scale1) - viewWidth / 2.0f);
-                    float c2 = (float)((y * scale2) - viewHeight / 2.0f);
-                    Vector rayDir = Vector.normalize(new Vector(c1, c2, focal));
-                    Vector rayPos = new Vector(0.0f, 0.0f, 0.0f);
-                    float closest = 1000;
-                    Vector grayScale = new Vector(0.0f, 0.0f, 0.0f);
+            for (int y = height - 1; y >= 0; --y) {
+                    for (int x = 0; x < width; ++x) {
+                        float c1 = (float) ((x * scale1) - (viewWidth / 2.0f));
+                        float c2 = (float) ((y * scale2) - (viewHeight / 2.0f));
+                        Vector rayDir = Vector.normalize(new Vector(c1, c2, -focal));
+                        Vector rayPos = new Vector(0.0f, 0.0f, 0.0f);
 
-                    for(int i = 0; i < world.Size; ++i){
-                        Sphere sphere = world.spheres.get(i);
-                        float t = 0.0f;
-                        if(World.doesIntersect(sphere, rayPos, rayDir, t) && t < closest){
-                            closest = t;
-                            Vector intersect = Vector.add(rayPos, Vector.scalarMultiply(rayDir, t));
-                            Vector lightDir = Vector.normalize(Vector.subtract(lightPos, intersect));
-                            if(shadowCheck(world, i, intersect, lightDir)){
-                                grayScale = Vector.scalarMultiply( new Vector(1.0f, 1.0f, 1.0f), 0.1f); // Shadow color
+                        float closest = 1000;
+                        Vector grayScale = new Vector(0.0f, 0.0f, 0.0f);
+
+                        for (int i = 0; i < world.Size; ++i) {
+                            Sphere sphere = world.spheres.get(i);
+                            float[] t = new float[1];
+                            t[0] = 0.0f; // Initialize t to zero
+                            if (World.doesIntersect(sphere, rayPos, rayDir, t) && t[0] < closest) {
+                                closest = t[0];
+                                Vector intersect = intersection(rayPos, rayDir, t[0]);
+                                Vector lightDir = normal(lightPos, intersect);
+                                if (shadowCheck(world, i, intersect, lightDir)) {
+                                    grayScale = Vector.scalarMultiply(new Vector(1.0f, 1.0f, 1.0f), 0.1f); // Shadow color
+                                } else {
+                                    grayScale = makeColor(new Vector(1.0f, 1.0f, 1.0f), lightPos, bright, rayPos, rayDir, closest, sphere.position);
+                                }
                             }
-                            else {
-
-                            }
-
                         }
+                        Color.WriteColor(ppmFile, grayScale);
                     }
-                }
+                    ppmFile.newLine(); // New line after each row of pixels
             }
 
-
+        } catch (IOException e) {
+            System.out.println("Error writing to output file: " + e.getMessage());
+            return; // Exit if file writing fails
         }
-
-
-
-
-
+        System.out.println("Output written successfully to output.ppm");
     }
 
     public static boolean shadowCheck(World world, int index, Vector intersect, Vector lightDir){
         for(int j = 0; j < world.Size; ++j){
             if(j != index){
-                float shadowT = 0.0f;
-                if(World.doesIntersect(world.spheres.get(j), intersect, lightDir, shadowT) && shadowT > 0.001f){
+                float[] shadowT = new float[1];
+                shadowT[0] = 0.0f; // Initialize shadow t to a large value
+                if(World.doesIntersect(world.spheres.get(j), intersect, lightDir, shadowT) && shadowT[0] > 0.001f){
                     return true; // Shadow detected
                 }
             }
@@ -116,10 +123,22 @@ public class Main {
 
     public static Vector makeColor(Vector pixelColor, Vector lightPos, float lightBright, Vector rayPos, Vector rayDir, float t, Vector spherePos){
         Vector intersect = Vector.add(rayPos, Vector.scalarMultiply(rayDir, t));
-        Vector surfaceNormal = Vector.normalize(Vector.normalize(Vector.subtract(intersect, spherePos)));
+        Vector surfaceNormal = Vector.normalize(normal(intersect, spherePos));
         Vector lightDir = Vector.normalize(Vector.subtract(lightPos, intersect));
         float lightDisSquared = Vector.distance2(lightPos, intersect);
         float dotProduct = Vector.dot(surfaceNormal, lightDir);
+        float intensity = Math.max(0.0f, dotProduct);
+        intensity *= lightBright / lightDisSquared;
+        intensity = Math.min(intensity, 1.0f);
+        return Vector.scalarMultiply(pixelColor, intensity);
+    }
+
+    public static Vector normal(Vector intersect, Vector spherePos) {
+        return Vector.normalize(Vector.subtract(spherePos, intersect));
+    }
+
+    public  static Vector intersection(Vector rayPos, Vector rayDir, float t) {
+        return Vector.add(rayPos, Vector.scalarMultiply(rayDir, t));
     }
 
 }

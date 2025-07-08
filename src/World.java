@@ -26,7 +26,7 @@ public class World {
         sphere.color = Color;
         return sphere;
     }
-    public static boolean doesIntersect(Sphere sphere, Vector rayPos, Vector rayDir, float t){
+    public static boolean doesIntersect(Sphere sphere, Vector rayPos, Vector rayDir, float[] t) {
         Vector V = Vector.subtract(rayPos, sphere.position);
         float a = Vector.dot(rayDir, rayDir);
         float b = 2 * Vector.dot(rayDir, V);
@@ -40,13 +40,13 @@ public class World {
         float t1 = (-b - (float)Math.sqrt(discriminant)) * inv2a;
         float t2 = (-b + (float)Math.sqrt(discriminant)) * inv2a;
         if (t1 > 0 && t2 > 0) {
-            t  = Math.min(t1, t2);
+            t[0]  = Math.min(t1, t2);
             return true;
         } else if (t1 > 0) {
-            t = t1;
+            t[0] = t1;
             return true;
         } else if (t2 > 0) {
-            t = t2;
+            t[0] = t2;
             return true;
         }
         else{

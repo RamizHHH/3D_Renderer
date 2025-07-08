@@ -35,6 +35,9 @@ public class Vector {
     public static Vector scalarMultiply(Vector v, float s){
         return new Vector(s * v.X, s * v.Y, s * v.Z);
     }
+    public static Vector scalarMultiply(Vector v, float[] s){
+        return new Vector(s[1] * v.X, s[1] * v.Y, s[1] * v.Z);
+    }
 
     public static Vector scalarDivide(Vector v, float d){
 
