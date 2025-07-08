@@ -6,9 +6,9 @@ public class Color {
 
     public static void WriteColor(BufferedWriter ppmFile, Vector color){
         try {
-            int r = (int)(Math.min(Math.max(color.X * 255.0f, 0.0f), 255.0f));
-            int g = (int)(Math.min(Math.max(color.Y * 255.0f, 0.0f), 255.0f));
-            int b = (int)(Math.min(Math.max(color.Z * 255.0f, 0.0f), 255.0f));
+            int r  = Math.min(255, Math.max(0, Math.round(color.x * 255)));
+            int g = Math.min(255, Math.max(0, Math.round(color.y * 255)));
+            int b = Math.min(255, Math.max(0, Math.round(color.z * 255)));
 
             ppmFile.write(r + " " + g + " " + b + " ");
         } catch (IOException e) {
@@ -26,13 +26,13 @@ public class Color {
     }
 
     public static int compareColor(Vector color1, Vector color2) {
-        int r1 = (int)(color1.X * 255);
-        int g1 = (int)(color1.Y * 255);
-        int b1 = (int)(color1.Z * 255);
+        int r1 = (int)(color1.x * 255);
+        int g1 = (int)(color1.y * 255);
+        int b1 = (int)(color1.z * 255);
 
-        int r2 = (int)(color2.X * 255);
-        int g2 = (int)(color2.Y * 255);
-        int b2 = (int)(color2.Z * 255);
+        int r2 = (int)(color2.x * 255);
+        int g2 = (int)(color2.y * 255);
+        int b2 = (int)(color2.z * 255);
 
         if (r1 != r2) return Integer.compare(r1, r2);
         if (g1 != g2) return Integer.compare(g1, g2);

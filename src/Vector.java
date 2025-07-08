@@ -1,42 +1,42 @@
 public class Vector {
 
-    float X;
-    float Y;
-    float Z;
+    float x;
+    float y;
+    float z;
 
     public Vector(float x, float y, float z){
-        this.X = x;
-        this.Y = y;
-        this.Z = z;
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
     public Vector() {
-        this.X = 0;
-        this.Y = 0;
-        this.Z = 0;
+        this.x = 0;
+        this.y = 0;
+        this.z = 0;
     }
 
     public static Vector add(Vector v1, Vector v2){
-        double x = v1.X + v2.X;
-        double y = v1.Y + v2.Y;
-        double z = v1.Z + v2.Z;
+        double x = v1.x + v2.x;
+        double y = v1.y + v2.y;
+        double z = v1.z + v2.z;
 
         return new Vector((float)x, (float)y, (float)z);
     }
 
     public static Vector subtract(Vector v1, Vector v2){
-        double x = v1.X - v2.X;
-        double y = v1.Y - v2.Y;
-        double z = v1.Z - v2.Z;
+        double x = v1.x - v2.x;
+        double y = v1.y - v2.y;
+        double z = v1.z - v2.z;
 
         return new Vector((float) x, (float) y, (float)z);
     }
 
     public static Vector scalarMultiply(Vector v, float s){
-        return new Vector(s * v.X, s * v.Y, s * v.Z);
+        return new Vector(s * v.x, s * v.y, s * v.z);
     }
     public static Vector scalarMultiply(Vector v, float[] s){
-        return new Vector(s[1] * v.X, s[1] * v.Y, s[1] * v.Z);
+        return new Vector(s[1] * v.x, s[1] * v.y, s[1] * v.z);
     }
 
     public static Vector scalarDivide(Vector v, float d){
@@ -44,7 +44,7 @@ public class Vector {
         if (d == 0) {
             throw new ArithmeticException("Division by zero is not allowed.");
         }
-        return new Vector(v.X / d, v.Y / d, v.Z / d);
+        return new Vector(v.x / d, v.y / d, v.z / d);
     }
 
     public static Vector normalize(Vector v){
@@ -56,7 +56,7 @@ public class Vector {
     }
 
     public static float dot(Vector v1, Vector v2){
-        return v1.X * v2.X + v1.Y * v2.Y + v1.Z * v2.Z;
+        return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
     }
 
     public static float length2(Vector v){

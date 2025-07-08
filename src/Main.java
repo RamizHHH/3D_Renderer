@@ -24,9 +24,9 @@ public class Main {
             height = scanner.nextInt();
             viewHeight = scanner.nextFloat();
             focal = scanner.nextFloat();
-            lightPos.X = scanner.nextFloat();
-            lightPos.Y = scanner.nextFloat();
-            lightPos.Z = scanner.nextFloat();
+            lightPos.x = scanner.nextFloat();
+            lightPos.y = scanner.nextFloat();
+            lightPos.z = scanner.nextFloat();
             bright = scanner.nextFloat();
             numColors = scanner.nextInt();
             for(int i = 0; i < numColors; i++) {
@@ -74,7 +74,8 @@ public class Main {
                     for (int x = 0; x < width; ++x) {
                         float c1 = (x * scale1) - (viewWidth / 2.0f);
                         float c2 = (y * scale2) - (viewHeight / 2.0f);
-                        Vector rayDir = Vector.normalize(new Vector(c1, c2, (-1)*focal));
+                        Vector rayDir_temp = new Vector(c1, c2, (-1) * focal);
+                        Vector rayDir = Vector.normalize(rayDir_temp);
                         Vector rayPos = new Vector(0.0f, 0.0f, 0.0f);
 
                         float[] closestT = new float[1];
@@ -93,7 +94,8 @@ public class Main {
                                     Vector temp = new Vector(1.0f, 1.0f, 1.0f);
                                     grayScale = Vector.scalarMultiply(temp, 0.1f); // Shadow color
                                 } else {
-                                    grayScale = makeColor(new Vector(1.0f, 1.0f, 1.0f), lightPos, bright, rayPos, rayDir, closestT, sphere.position);
+                                    Vector temp = new Vector(1.0f, 1.0f, 1.0f);
+                                    grayScale = makeColor(temp, lightPos, bright, rayPos, rayDir, closestT, sphere.position);
                                 }
                             }
                         }
@@ -113,7 +115,7 @@ public class Main {
         for(int j = 0; j < world.Size; ++j){
             if(j != index){
                 float[] shadowT = new float[1];
-                shadowT[0] = 0.0f; // Initialize shadow t to a large value
+                shadowT[0] = 10000.0f; // Initialize shadow t to a large value
                 if(World.doesIntersect(world.spheres.get(j), intersect, lightDir, shadowT) && shadowT[0] > 0.001f){
                     return true; // Shadow detected
                 }
@@ -125,7 +127,7 @@ public class Main {
 
     public static Vector makeColor(Vector pixelColor, Vector lightPos, float lightBright, Vector rayPos, Vector rayDir, float[] t, Vector spherePos){
         Vector intersect = intersection(rayPos, rayDir, t);
-        Vector surfaceNormal = Vector.normalize(normal(intersect, spherePos));
+        Vector surfaceNormal = Vector.normalize(Vector.subtract(intersect, spherePos));
         Vector lightDir = Vector.normalize(Vector.subtract(lightPos, intersect));
         float lightDisSquared = Vector.distance2(lightPos, intersect);
         float dotProduct = Vector.dot(surfaceNormal, lightDir);
@@ -136,7 +138,7 @@ public class Main {
     }
 
     public static Vector normal(Vector intersect, Vector spherePos) {
-        return Vector.normalize(Vector.subtract(intersect, spherePos));
+        return Vector.normalize(Vector.subtract(spherePos, intersect));
     }
 
     public  static Vector intersection(Vector rayPos, Vector rayDir, float[] t) {
