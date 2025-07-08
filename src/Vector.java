@@ -71,7 +71,4 @@ public class Vector {
         return length2(subtract(v1, v2));
     }
 
-    public static float distance(Vector v1, Vector v2){
-        return (float)Math.sqrt(distance2(v1,v2));
-    }
 }

@@ -16,6 +16,7 @@ public class World {
         if(world.Size >= world.Capacity){
             world.Capacity *= 2;
         }
+        world.Size++;
         world.spheres.add(sphere);
     }
 
@@ -27,36 +28,31 @@ public class World {
         return sphere;
     }
     public static boolean doesIntersect(Sphere sphere, Vector rayPos, Vector rayDir, float[] t) {
-            Vector V = Vector.subtract(sphere.position, rayPos);
-            float a = Vector.dot(rayDir, rayDir);
-            float b = 2.0f * Vector.dot(rayDir, V);
-            float c = Vector.dot(V, V) - (sphere.r * sphere.r);
-            float discriminant = (b * b) - 4 * a * c;
-            System.out.println("Discriminant: " + discriminant);
 
-            if (discriminant < 0.0f) {
-                return false; // No intersection
-            }
-
-            float inv2a = 1.0f / (2.0f * a);
-            float t1 = (-b - (float) Math.sqrt(discriminant)) * inv2a;
-            float t2 = (-b + (float) Math.sqrt(discriminant)) * inv2a;
-
-            if(t1 > 0.0f && t2 > 0.0f){
-                t[0] = Math.min(t1, t2); // Return the closest positive intersection
-                return true;
-            } else if (t1 > 0.0f) {
-                t[0] = t1; // Return t1 if it's the only positive intersection
-                return true;
-            } else if (t2 > 0.0f) {
-                t[0] = t2; // Return t2 if it's the only positive intersection
-                return true;
-            }
-            return false;
+        Vector V = Vector.subtract(rayPos, sphere.position);
+        float a = Vector.dot(rayDir, rayDir);
+        float b = 2.0f * Vector.dot(rayDir, V);
+        float c = Vector.dot(V, V) - (sphere.r * sphere.r);
+        float discriminant = (b * b) - 4.0f * a * c;
+        if (discriminant < 0.0f) {
+            return false; // No intersection
         }
 
+        float inv2a = 1.0f / (2.0f * a);
+        float sqrtD = (float) Math.sqrt(discriminant);
+        float t1 = (-b - sqrtD) * inv2a;
+        float t2 = (-b + sqrtD) * inv2a;
 
-
-
-
+        if (t1 > 0.0f && t2 > 0.0f) {
+            t[0] = Math.min(t1, t2);
+            return true;
+        } else if (t1 > 0.0f) {
+            t[0] = t1;
+            return true;
+        } else if (t2 > 0.0f) {
+            t[0] = t2;
+            return true;
+        }
+        return false;
+    }
 }

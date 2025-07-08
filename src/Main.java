@@ -20,8 +20,8 @@ public class Main {
 
         try{
             Scanner scanner = new Scanner(new File("src/input.txt"));
-            width = 400;
-            height = 600;
+            width = scanner.nextInt();
+            height = scanner.nextInt();
             viewHeight = scanner.nextFloat();
             focal = scanner.nextFloat();
             lightPos.X = scanner.nextFloat();
@@ -70,33 +70,30 @@ public class Main {
             ppmFile.write("P3\n");
             ppmFile.write(width + " " + height + "\n");
             ppmFile.write("255\n");
-            System.out.println("Writing to output.ppm...");
             for (int y = height - 1; y >= 0; --y) {
                     for (int x = 0; x < width; ++x) {
-                        System.out.println("Processing pixel at (" + x + ", " + y + ")");
                         float c1 = (x * scale1) - (viewWidth / 2.0f);
                         float c2 = (y * scale2) - (viewHeight / 2.0f);
                         Vector rayDir = Vector.normalize(new Vector(c1, c2, (-1)*focal));
                         Vector rayPos = new Vector(0.0f, 0.0f, 0.0f);
 
-                        float closest = 1000.0f;
+                        float[] closestT = new float[1];
+                        closestT[0] = 1000f; // Initialize to a large value
                         Vector grayScale = new Vector(0.0f, 0.0f, 0.0f);
 
                         for (int i = 0; i < world.Size; ++i) {
-                            System.out.println("Number of spheres in world: " + world.Size);
                             Sphere sphere = world.spheres.get(i);
                             float[] t = new float[1];
-                            t[0] = 0.0f; // Initialize t to zero
-                            if (World.doesIntersect(sphere, rayPos, rayDir, t) && t[0] < closest) {
-                                System.out.println("The ray intersects with sphere " + i + " at t = " + t[0]);
-                                closest = t[0];
-                                Vector intersect = intersection(rayPos, rayDir, t[0]);
-                                Vector lightDir = normal(lightPos, intersect);
+                            t[0] = 0.0f;
+                            if (World.doesIntersect(sphere, rayPos, rayDir, t) && t[0] > 0.001f && t[0] < closestT[0]) {
+                                closestT[0] = t[0];
+                                Vector intersect = intersection(rayPos, rayDir, t);
+                                Vector lightDir = normal(intersect, lightPos );
                                 if (shadowCheck(world, i, intersect, lightDir)) {
                                     Vector temp = new Vector(1.0f, 1.0f, 1.0f);
                                     grayScale = Vector.scalarMultiply(temp, 0.1f); // Shadow color
                                 } else {
-                                    grayScale = makeColor(new Vector(1.0f, 1.0f, 1.0f), lightPos, bright, rayPos, rayDir, closest, sphere.position);
+                                    grayScale = makeColor(new Vector(1.0f, 1.0f, 1.0f), lightPos, bright, rayPos, rayDir, closestT, sphere.position);
                                 }
                             }
                         }
@@ -126,8 +123,8 @@ public class Main {
         return false;
     }
 
-    public static Vector makeColor(Vector pixelColor, Vector lightPos, float lightBright, Vector rayPos, Vector rayDir, float t, Vector spherePos){
-        Vector intersect = Vector.add(rayPos, Vector.scalarMultiply(rayDir, t));
+    public static Vector makeColor(Vector pixelColor, Vector lightPos, float lightBright, Vector rayPos, Vector rayDir, float[] t, Vector spherePos){
+        Vector intersect = intersection(rayPos, rayDir, t);
         Vector surfaceNormal = Vector.normalize(normal(intersect, spherePos));
         Vector lightDir = Vector.normalize(Vector.subtract(lightPos, intersect));
         float lightDisSquared = Vector.distance2(lightPos, intersect);
@@ -139,11 +136,11 @@ public class Main {
     }
 
     public static Vector normal(Vector intersect, Vector spherePos) {
-        return Vector.normalize(Vector.subtract(spherePos, intersect));
+        return Vector.normalize(Vector.subtract(intersect, spherePos));
     }
 
-    public  static Vector intersection(Vector rayPos, Vector rayDir, float t) {
-        return Vector.add(rayPos, Vector.scalarMultiply(rayDir, t));
+    public  static Vector intersection(Vector rayPos, Vector rayDir, float[] t) {
+        return Vector.add(rayPos, Vector.scalarMultiply(rayDir, t[0]));
     }
 
 }
