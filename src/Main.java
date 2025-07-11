@@ -32,12 +32,23 @@ public class Main {
             for(int i = 0; i < numColors; i++) {
                 hexColors.add(scanner.next());
             }
-            int backgroundColor = scanner.nextInt();
+            hexColors.sort((a, b) -> {
+                String cleanA = a.startsWith("0x") ? a.substring(2) : a;
+                String cleanB = b.startsWith("0x") ? b.substring(2) : b;
+                Vector colorA = Color.unpackColor(Integer.parseInt(cleanA, 16));
+                Vector colorB = Color.unpackColor(Integer.parseInt(cleanB, 16));
+                return Color.compareColor(colorA, colorB);
+            });
+            background = scanner.nextInt();
+            Vector backgroundColor = Color.unpackColor(
+                    Integer.parseInt(hexColors.get(background).replace("0x", ""), 16)
+            );
+
             numSpheres = scanner.nextInt();
             for(int i = 0; i < numSpheres; ++i){
                 Vector position = new Vector(scanner.nextFloat(), scanner.nextFloat(), scanner.nextFloat());
                 float radius = scanner.nextFloat();
-                Vector color = Color.unpackColor(scanner.nextInt());
+                Vector color = Color.unpackColor(Integer.parseInt(hexColors.get(scanner.nextInt()).replace("0x", ""), 16));
                 Sphere sphere = World.createSphere(radius, position, color);
                 World.addSphere(world, sphere);
             }
@@ -53,15 +64,6 @@ public class Main {
 
         float AP = (float) width / (float) height;
         float viewWidth = AP * viewHeight;
-        hexColors.sort((a, b) -> {
-            String cleanA = a.startsWith("0x") ? a.substring(2) : a;
-            String cleanB = b.startsWith("0x") ? b.substring(2) : b;
-
-            Vector colorA = Color.unpackColor(Integer.parseInt(cleanA, 16));
-            Vector colorB = Color.unpackColor(Integer.parseInt(cleanB, 16));
-            return Color.compareColor(colorA, colorB);
-        });
-
 
         float scale1 = viewWidth / width;
         float scale2 = viewHeight / height;
@@ -71,37 +73,59 @@ public class Main {
             ppmFile.write(width + " " + height + "\n");
             ppmFile.write("255\n");
             for (int y = height - 1; y >= 0; --y) {
-                    for (int x = 0; x < width; ++x) {
-                        float c1 = (x * scale1) - (viewWidth / 2.0f);
-                        float c2 = (y * scale2) - (viewHeight / 2.0f);
-                        Vector rayDir_temp = new Vector(c1, c2, (-1) * focal);
-                        Vector rayDir = Vector.normalize(rayDir_temp);
-                        Vector rayPos = new Vector(0.0f, 0.0f, 0.0f);
-
+                    for (int x = 0; x < width; ++x){
+                        float[] offsets = {-1.0f / 3.0f, 0.0f, 1.0f / 3.0f};
+                        Vector backgroundColor = Color.unpackColor(Integer.parseInt(hexColors.get(background).replace("0x", ""), 16));
+                        float newViewWidth = viewWidth/2;
+                        float newViewHeight = viewHeight/2;
+                        Vector TotalColor = new Vector(0.0f, 0.0f, 0.0f);
+                        float oldC1 = ((x) * scale1) - newViewWidth;
+                        float oldC2 = ((y) * scale2) - newViewHeight;
+                        float c1;
+                        float c2;
+                        float[] t = new float[1];
                         float[] closestT = new float[1];
-                        closestT[0] = 1000f; // Initialize to a large value
-                        Vector grayScale = new Vector(0.0f, 0.0f, 0.0f);
+                        for(int oy = 0; oy < 3; ++oy){
+                            for(int ox = 0; ox < 3; ++ox){
+                                c1 = oldC1 + offsets[ox] * scale1;
+                                c2 = oldC2 + offsets[oy] * scale2;
 
-                        for (int i = 0; i < world.Size; ++i) {
-                            Sphere sphere = world.spheres.get(i);
-                            float[] t = new float[1];
-                            t[0] = 0.0f;
-                            if (World.doesIntersect(sphere, rayPos, rayDir, t) && t[0] > 0.001f && t[0] < closestT[0]) {
-                                closestT[0] = t[0];
-                                Vector intersect = intersection(rayPos, rayDir, t);
-                                Vector lightDir = normal(intersect, lightPos );
-                                if (shadowCheck(world, i, intersect, lightDir)) {
-                                    Vector temp = new Vector(1.0f, 1.0f, 1.0f);
-                                    grayScale = Vector.scalarMultiply(temp, 0.1f); // Shadow color
-                                } else {
-                                    Vector temp = new Vector(1.0f, 1.0f, 1.0f);
-                                    grayScale = makeColor(temp, lightPos, bright, rayPos, rayDir, closestT, sphere.position);
+                                Vector rayBefore = new Vector(c1, c2, -focal);
+                                Vector rayDir = Vector.normalize((rayBefore));
+
+                                Vector rayPos = new Vector(0.0f, 0.0f, 0.0f);
+                                boolean Intersected = false;
+
+                                closestT[0] = 1000f; // Initialize to a large value
+                                Vector newColor = new Vector(0.0f, 0.0f, 0.0f);
+
+                                for(int i = 0; i < world.Size; ++i){
+                                    Sphere sphere = world.spheres.get(i);
+                                    if(World.doesIntersect(sphere, rayPos, rayDir, t) && t[0] < closestT[0] && t[0] > 0.001f){
+                                        closestT[0] = t[0];
+                                        Vector intersect = intersection(rayPos, rayDir, t);
+
+                                        Vector lightDir = normal(intersect, lightPos);
+                                        Intersected = true;
+
+                                        if(shadowCheck(world, i, intersect, lightDir)){
+                                            newColor = Vector.scalarMultiply(sphere.color, 0.1f); // Shadowed color
+                                        }
+                                        else{
+                                            newColor = makeColor(sphere.color, lightPos, bright, rayPos, rayDir, closestT, sphere.position);
+                                        }
+                                    }
                                 }
+                                if(!Intersected) {
+                                    newColor = backgroundColor; // No intersection, use background color
+                                }
+                                TotalColor = Vector.add(TotalColor, newColor);
                             }
                         }
-                        Color.WriteColor(ppmFile, grayScale);
+                        Vector avg = Vector.scalarDivide(TotalColor, 9.0f); // Average color from 9 samples
+                        Color.WriteColor(ppmFile, avg);
                     }
-                    ppmFile.newLine(); // New line after each row of pixels
+                    ppmFile.newLine();
             }
 
         } catch (IOException e) {
