@@ -43,6 +43,7 @@ public class Main {
             System.out.printf("Background color hex: 0x%06X\n", backgroundColorValue);
 
             ArrayList <Integer> colors = new ArrayList<>();
+
             for(String hex : hexColors){
                 colors.add(Integer.parseInt(hex.replace("0x", ""), 16));
             }
