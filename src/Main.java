@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Scanner;
 
@@ -33,25 +34,22 @@ public class Main {
             bright = scanner.nextFloat();
             numColors = scanner.nextInt();
             hexColors = new String[numColors];
+            ColorEntry[] colorEntries = new ColorEntry[numColors];
             for(int i = 0; i < numColors; i++) {
-                hexColors[i] = scanner.next();
+                String hex = scanner.next();
+                hexColors[i] = hex;
             }
+
+            QuickSort.qsort(hexColors, (a, b) ->{
+                int colorA = Integer.parseInt(a.replace("0x", ""), 16);
+                int colorB = Integer.parseInt(b.replace("0x", ""), 16);
+                return Integer.compare(colorA, colorB);
+            });
 
             background = scanner.nextInt();
             backgroundColorValue = Integer.parseInt(hexColors[background].replace("0x", ""), 16);
             System.out.println("Background color index: " + background);
             System.out.printf("Background color hex: 0x%06X\n", backgroundColorValue);
-
-            ArrayList <Integer> colors = new ArrayList<>();
-
-            for(String hex : hexColors){
-                colors.add(Integer.parseInt(hex.replace("0x", ""), 16));
-            }
-            Collections.sort(colors);
-
-            for(int i = 0; i < numColors; ++i){
-                hexColors[i] = "0x" + Integer.toHexString(colors.get(i));
-            }
 
 
             numSpheres = scanner.nextInt();
