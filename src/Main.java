@@ -1,12 +1,9 @@
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Scanner;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args){
 
         int width;
         int height;
@@ -15,11 +12,9 @@ public class Main {
         Vector lightPos = new Vector(0.0f, 0.0f, 0.0f);
         float bright;
         int numColors;
-        String[] hexColors = new String[0];
         int background;
         int numSpheres;
         int backgroundColorValue;
-        Vector backgroundColor = new Vector(0.0f, 0.0f, 0.0f);
         World world = new World();
 
         try{
@@ -33,18 +28,23 @@ public class Main {
             lightPos.z = scanner.nextFloat();
             bright = scanner.nextFloat();
             numColors = scanner.nextInt();
-            hexColors = new String[numColors];
-            ColorEntry[] colorEntries = new ColorEntry[numColors];
+            String [] hexColors = new String[numColors];
             for(int i = 0; i < numColors; i++) {
                 String hex = scanner.next();
                 hexColors[i] = hex;
             }
+
+            //print sorted hex colors
 
             QuickSort.qsort(hexColors, (a, b) ->{
                 int colorA = Integer.parseInt(a.replace("0x", ""), 16);
                 int colorB = Integer.parseInt(b.replace("0x", ""), 16);
                 return Integer.compare(colorA, colorB);
             });
+
+            for(String hex : hexColors) {
+                System.out.println(hex);
+            }
 
             background = scanner.nextInt();
             backgroundColorValue = Integer.parseInt(hexColors[background].replace("0x", ""), 16);
@@ -87,7 +87,7 @@ public class Main {
                     float[] offsets = {-1.0f / 3.0f, 0.0f, 1.0f / 3.0f};
                     float newViewWidth = viewWidth/2;
                     float newViewHeight = viewHeight/2;
-                    backgroundColor = Color.unpackColor(backgroundColorValue);
+                    Vector backgroundColor = Color.unpackColor(backgroundColorValue);
                     Vector TotalColor = new Vector(0.0f, 0.0f, 0.0f);
                     float oldC1 = ((x) * scale1) - newViewWidth;
                     float oldC2 = ((y) * scale2) - newViewHeight;
