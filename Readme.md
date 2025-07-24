@@ -72,7 +72,7 @@ Here are some examples of input files and their corresponding outputs:
     0.6 -0.3 -10.2 0.3 4
     -0.4 -0.1 -10.5 0.7 2
 ```
-![Example 1](Readme_assets/output1.ppm)
+![Example 1](Readme_assets/output1.png)
 
 ```
 640 480
@@ -87,4 +87,4 @@ Here are some examples of input files and their corresponding outputs:
 -2.0 0.0 -5.0 2.0 3
 0.0 -102.0 -5.0 100.0 1
 ```
-![Example 2](Readme_assets/output2.ppm)
+![Example 2](Readme_assets/output2.png)
